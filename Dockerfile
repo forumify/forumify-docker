@@ -37,16 +37,6 @@ COPY nginx/http.d/default.conf /etc/nginx/http.d/default.conf
 COPY supervisor/supervisord.conf /etc/supervisord.conf
 COPY supervisor/conf.d /etc/supervisor/conf.d
 
-# Create dirs and set permissions
-RUN mkdir -p /var/log/supervisor && \
-	mkdir -p var/cache && \
-    mkdir -p var/log && \
-    chmod -R 755 var && \
-    mkdir -p public/storage && \
-    chmod -R 755 public && \
-    chown -R nginx:nginx . && \
-    chmod +x -R bin
-
 # Start forumify
 COPY start.sh /start.sh
 RUN chmod 755 /start.sh
