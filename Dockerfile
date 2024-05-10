@@ -15,7 +15,7 @@ RUN apk add --no-cache \
     xmlstarlet && \
     docker-php-ext-install -j$(nproc) pdo_mysql intl opcache zip && \
     mkdir -p /var/log/supervisor && \
-    curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-2.2.x/composer.phar && \
+    curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar && \
     chmod +x /usr/local/bin/composer
 
 # Install nginx
@@ -30,6 +30,7 @@ RUN addgroup -S nginx && \
 # Configuration files
 COPY php/php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY php/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY php/php.ini /usr/local/etc/php/conf.d/production.ini
 
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/http.d/default.conf /etc/nginx/http.d/default.conf
