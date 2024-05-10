@@ -12,6 +12,7 @@ chown -R nginx:nginx .
 # install dependencies
 su nginx -c "composer install --no-dev --no-progress"
 su nginx -c "composer dump-autoload --no-dev --classmap-authoritative"
+su nginx -c "composer dump-env prod"
 
 su nginx -c "npm install -force"
 su nginx -c "npm run build"
