@@ -5,8 +5,6 @@ mkdir -p var/log
 chmod -R 755 var
 mkdir -p public/storage
 chmod -R 755 public
-chmod +x -R bin
-
 chown -R nginx:nginx .
 
 # install dependencies
@@ -16,6 +14,8 @@ su nginx -c "composer dump-env prod"
 
 su nginx -c "npm install -force"
 su nginx -c "npm run build"
+
+chmod +x -R bin
 
 # run migrations etc
 su nginx -c "/usr/src/app/bin/console doctrine:migrations:migrate --no-interaction"
