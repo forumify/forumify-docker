@@ -39,6 +39,7 @@ COPY supervisor/supervisord.conf /etc/supervisord.conf
 COPY supervisor/conf.d /etc/supervisor/conf.d
 
 # Start forumify
+COPY composer.json /composer.json
 COPY start.sh /start.sh
 RUN chmod 755 /start.sh
 
