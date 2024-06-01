@@ -38,8 +38,9 @@ COPY nginx/http.d/default.conf /etc/nginx/http.d/default.conf
 COPY supervisor/supervisord.conf /etc/supervisord.conf
 COPY supervisor/conf.d /etc/supervisor/conf.d
 
+COPY composer.json /usr/src/app.bak/composer.json
+
 # Start forumify
-COPY composer.json /usr/src/app/composer.json
 COPY start.sh /start.sh
 RUN chmod 755 /start.sh
 
