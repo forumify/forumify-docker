@@ -25,6 +25,7 @@ su nginx -c "npm run build"
 chmod +x -R bin
 
 # Run startup commands
+su nginx -c "/usr/src/app/bin/console doctrine:database:create --if-not-exists --no-interaction"
 su nginx -c "/usr/src/app/bin/console doctrine:migrations:migrate --no-interaction"
 su nginx -c "/usr/src/app/bin/console forumify:plugins:refresh --no-interaction"
 su nginx -c "/usr/src/app/bin/console assets:install --no-interaction"
