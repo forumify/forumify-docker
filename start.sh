@@ -15,8 +15,8 @@ chmod -R 777 public
 chown -R nginx:nginx .
 
 # Install dependencies
-su nginx -c "composer install --no-dev --no-progress"
-su nginx -c "composer dump-autoload --no-dev --classmap-authoritative"
+su nginx -c "composer install --no-dev --no-progress --no-interaction --no-autoloader"
+su nginx -c "composer dump-autoload --optimize --classmap-authoritative"
 su nginx -c "composer dump-env prod"
 
 su nginx -c "npm install -force"

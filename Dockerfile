@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 WORKDIR /usr/src/app
 
@@ -12,11 +12,14 @@ RUN apk add --no-cache \
     shadow \
     supervisor \
     tzdata \
-    xmlstarlet && \
-    docker-php-ext-install -j$(nproc) pdo_mysql intl opcache zip && \
-    mkdir -p /var/log/supervisor && \
-    curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar && \
+    xmlstarlet
+
+# Install composer
+RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar && \
     chmod +x /usr/local/bin/composer
+
+# Install PHP Extensions
+RUN docker-php-ext-install -j$(nproc) pdo_mysql intl opcache zip
 
 # Install nginx
 RUN addgroup -S nginx && \
@@ -28,6 +31,8 @@ RUN addgroup -S nginx && \
     apk del shadow
 
 # Configuration files
+RUN mkdir -p /var/log/supervisor
+
 COPY php/php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY php/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY php/php.ini /usr/local/etc/php/conf.d/production.ini
