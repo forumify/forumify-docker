@@ -1,52 +1,52 @@
-FROM php:8.4-fpm-alpine
+# syntax=docker/dockerfile:1.4
+FROM node:22 AS node
+FROM php:8.4-fpm
 
 WORKDIR /usr/src/app
 
-# Configure OS
-RUN apk add --no-cache \
-    busybox-suid \
-    icu-dev \
-    libzip-dev \
-    nodejs \
-    npm \
-    shadow \
-    supervisor \
-    tzdata \
-    xmlstarlet
 
-# Install composer
-RUN curl -o /usr/local/bin/composer https://getcomposer.org/download/latest-stable/composer.phar && \
-    chmod +x /usr/local/bin/composer
+# Configure OS
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        acl \
+        expect \
+        file \
+        gettext \
+        git \
+        nginx \
+        supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install PHP Extensions
-RUN docker-php-ext-install -j$(nproc) pdo_mysql intl opcache zip
+RUN curl -sSLf -o \
+        /usr/local/bin/install-php-extensions \
+        https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions \
+    && chmod +x /usr/local/bin/install-php-extensions
 
-# Install nginx
-RUN addgroup -S nginx && \
-    adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx && \
-    usermod -u 1000 nginx && \
-    groupmod -g 1000 nginx && \
-    usermod --shell /bin/ash nginx && \
-    apk add nginx && \
-    apk del shadow
+RUN install-php-extensions \
+        @composer \
+        pdo_mysql \
+        intl \
+        opcache \
+        zip
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+# Install NodeJS
+COPY --link --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --link --from=node /usr/local/bin/node /usr/local/bin/node
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 # Configuration files
-RUN mkdir -p /var/log/supervisor
+COPY --link conf/php-fpm.conf /usr/local/etc/php-fpm.conf
+COPY --link conf/php.ini /usr/local/etc/php/conf.d/production.ini
+COPY --link conf/nginx.conf /etc/nginx/nginx.conf
+COPY --link conf/supervisord.conf /etc/supervisord.conf
+COPY --link composer.json /usr/src/app.bak/composer.json
 
-COPY php/php-fpm.conf /usr/local/etc/php-fpm.conf
-COPY php/www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY php/php.ini /usr/local/etc/php/conf.d/production.ini
-
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
-COPY nginx/http.d/default.conf /etc/nginx/http.d/default.conf
-
-COPY supervisor/supervisord.conf /etc/supervisord.conf
-COPY supervisor/conf.d /etc/supervisor/conf.d
-
-COPY composer.json /usr/src/app.bak/composer.json
+RUN mkfifo -m 666 /tmp/logpipe
 
 # Start forumify
-COPY start.sh /start.sh
-RUN chmod 755 /start.sh
+WORKDIR /usr/src/app
 
-CMD ["/start.sh"]
+COPY --link --chmod=755 start.sh /start.sh
+ENTRYPOINT ["/start.sh"]

@@ -1,3 +1,12 @@
+#!/bin/sh
+set -e
+
+cd /usr/src/app
+
+# Start logging
+unbuffer cat /tmp/logpipe &
+
+
 # Setup dirs/perms
 ## Copy default files if app is empty
 if [ -z "$(ls -A /usr/src/app)" ]; then
@@ -6,30 +15,24 @@ if [ -z "$(ls -A /usr/src/app)" ]; then
 fi
 
 ## Misc dirs
-mkdir -p /var/log/supervisor
-mkdir -p var/cache
-mkdir -p var/log
-chmod -R 777 var
-mkdir -p public/storage
-chmod -R 777 public
-chown -R nginx:nginx .
+mkdir -p -m 777 var/cache var/log
+mkdir -p -m 777 public/storage
 
 # Install dependencies
-su nginx -c "composer install --no-dev --no-progress --no-interaction --no-autoloader"
-su nginx -c "composer dump-autoload --optimize --classmap-authoritative"
-su nginx -c "composer dump-env prod"
-
-su nginx -c "npm install -force"
-su nginx -c "npm run build"
+composer install --no-dev --no-progress --no-interaction --no-autoloader
+composer dump-autoload --optimize --classmap-authoritative
+composer dump-env prod
+npm install -force
+npm run build
 
 chmod +x -R bin
 
 # Run startup commands
-su nginx -c "/usr/src/app/bin/console doctrine:database:create --if-not-exists --no-interaction"
-su nginx -c "/usr/src/app/bin/console doctrine:migrations:migrate --no-interaction"
-su nginx -c "/usr/src/app/bin/console forumify:plugins:refresh --no-interaction"
-su nginx -c "/usr/src/app/bin/console assets:install --no-interaction"
-su nginx -c "/usr/src/app/bin/console cache:warmup --no-interaction"
+/usr/src/app/bin/console doctrine:database:create --if-not-exists --no-interaction
+/usr/src/app/bin/console doctrine:migrations:migrate --no-interaction
+/usr/src/app/bin/console forumify:plugins:refresh --no-interaction
+/usr/src/app/bin/console assets:install --no-interaction
+/usr/src/app/bin/console cache:warmup --no-interaction
 
 # Launch services
 exec /usr/bin/supervisord -n -c /etc/supervisord.conf
