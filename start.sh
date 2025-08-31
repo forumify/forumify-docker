@@ -22,7 +22,6 @@ mkdir -p -m 777 public/storage
 composer install --no-dev --no-progress --no-interaction --no-autoloader --no-scripts
 composer dump-autoload --optimize --classmap-authoritative
 composer dump-env prod
-composer run-script auto-scripts
 npm install -force
 npm run build
 
