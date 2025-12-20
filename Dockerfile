@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 FROM node:22 AS node
-FROM php:8.4-fpm
+FROM php:8.5-fpm
 
 WORKDIR /usr/src/app
 
