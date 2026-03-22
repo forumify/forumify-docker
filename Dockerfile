@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM node:22 AS node
+FROM node:24 AS node
 FROM php:8.5-fpm
 
 WORKDIR /usr/src/app
@@ -24,9 +24,10 @@ RUN curl -sSLf -o \
 
 RUN install-php-extensions \
         @composer \
-        pdo_mysql \
+        apcu \
         intl \
         opcache \
+        pdo_mysql \
         zip
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -44,6 +45,7 @@ COPY --link conf/supervisord.conf /etc/supervisord.conf
 COPY --link composer.json /usr/src/app.bak/composer.json
 
 RUN mkfifo -m 666 /tmp/logpipe
+RUN mkdir -p -m 777 /var/run/php
 
 # Start forumify
 WORKDIR /usr/src/app
