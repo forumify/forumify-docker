@@ -25,6 +25,7 @@ RUN curl -sSLf -o \
 RUN install-php-extensions \
         @composer \
         apcu \
+        gd \
         intl \
         opcache \
         pdo_mysql \
