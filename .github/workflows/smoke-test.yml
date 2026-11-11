@@ -1,0 +1,46 @@
+name: Smoke Test
+
+on:
+    schedule:
+        - cron: '17 4 * * *'
+    push:
+        branches: [master]
+    pull_request:
+    workflow_dispatch:
+    workflow_call:
+        inputs:
+            platform-repository:
+                description: Repository to install forumify-platform from, instead of the latest release
+                type: string
+                default: forumify/forumify-platform
+            platform-ref:
+                description: Ref of forumify-platform to install, instead of the latest release
+                type: string
+                default: ''
+
+jobs:
+    smoke-test:
+        name: Launch from scratch
+        runs-on: ubuntu-latest
+        timeout-minutes: 40
+        steps:
+            - name: Checkout forumify-docker
+              uses: actions/checkout@v4
+              with:
+                  repository: forumify/forumify-docker
+                  ref: ${{ github.repository == 'forumify/forumify-docker' && github.ref || 'master' }}
+                  path: forumify-docker
+
+            - name: Checkout forumify-platform
+              if: inputs.platform-ref != ''
+              uses: actions/checkout@v4
+              with:
+                  repository: ${{ inputs.platform-repository }}
+                  ref: ${{ inputs.platform-ref }}
+                  path: forumify-platform
+
+            - name: Run smoke test
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  PLATFORM_PATH: ${{ inputs.platform-ref != '' && 'forumify-platform' || '' }}
+              run: ./forumify-docker/tests/smoke-test.sh
